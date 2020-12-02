@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Add Account</title>
+</head>
+<body>
+    <h1>Add Account</h1>
+    <form action="/addaccount" method="post">
+        <label>Account Name</label>
+        {{ accounts.name }}
+        <label>Account Type</label>
+        {{ accounts.type }}
+        <label>Starting Balance</label>
+        {{ accounts.startbal }}
+        <!-- <label>Current Balance = 0 </label>
+        {{ accounts.curbal }} -->
+        <input type="submit" name="submit">
+    </form>
+    <!-- Link back to Account View: -->
+    <p><a href="/accountview">Click for account view</a></p>
+    <p><a href="/accountview">Click for Balance Sheet</a></p>
+</body>
+</html>

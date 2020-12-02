@@ -1,0 +1,60 @@
+<!-- <!DOCTYPE html>
+<html>
+<head>
+    <title>Transactions</title>
+</head>
+<body>
+    <h1>Transactions</h1>
+    {% for i in transaction %}
+    <p>Date : {{ i.date }} Payee : {{ i.payee }} Amount : {{ i.amount }}</p>
+    <hr>
+    {% endfor %}
+</body>
+</html> -->
+
+
+
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+table, th, td {
+table-layout: fixed;
+border: 1px solid black;
+border-collapse: collapse;
+}
+th, td {
+padding: 5px;
+}
+th {
+text-align: left;
+}
+</style>
+<title>Transactions</title>
+</head>
+<body>
+  <h1>Transactions for:   </h1>
+  <p>{{accounts.name}} starting balance: {{adj_start_bal}} <p>
+  <p> current balance:  {{ current_balance }} <p>
+  {% for i in transaction %}
+  <table style="width:100%">
+    <tr>
+      <th>Date : {{ i.date }}    </th>
+      <th>Payee : {{ i.payee }}  </th>
+      <th>Account : {{ i.inexact }}</th>
+      <th>Amount : {{ i.amount }}</th>
+      <th>Matched? : {{ i.matched }}</th>
+    <!-- </tr> -->
+  {% for name in running_balance %}
+    <!-- </tr> -->
+      <th>Balance : {{ name }}</th>
+    <!-- </tr> -->
+  {% endfor %}
+  {% endfor %}
+  </table>
+  <p><a href="/accountview">View Accounts & Access Ledgers</a></p>
+  <p><a href="/accountview">Balance Sheet #TODO</a></p>
+  <p><a href="/addaccount">Add an Account</a></p>
+  <p><a href="/delete_account">Delete an Account</a></p>
+<body>
+</html>

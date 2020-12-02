@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Delete an Account</title>
+</head>
+<body>
+    <h1>Delete an Account</h1>
+    <form action="delete" method="post">
+      {% for i in accounts %}
+      <p>Account Title : {{ i.name }}</p>
+      <p>Account ID : <a href={{ url_for('delete', id=i.id) }}>{{ i.id }}</a></p>
+      <!-- <input type="checkbox"> -->
+      <p>Type : {{ i.type }}</p>
+      <p>Starting Balance : {{ i.startbal }}</p>
+      <p>Current Balance : {{ i.curbal }}</p>
+      <input type="submit" name="submit">
+      <hr>
+      {% endfor %}
+      <!-- <input type="submit" name="submit"> -->
+    </form>
+    <p><a href="/accountview">View Accounts & Access Ledgers</a></p>
+    <p><a href="/accountview">Balance Sheet #TODO</a></p>
+    <p><a href="/addaccount">Add an Account</a></p>
+    <p><a href="/delete_account">Delete an Account</a></p>
+</body>
+</html>
