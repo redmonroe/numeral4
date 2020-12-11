@@ -1,4 +1,6 @@
 from app import app
+from app.models import Categories
+from flask import render_template
 
 
 # from flask import Flask, render_template, flash, redirect, url_for
@@ -20,8 +22,11 @@ def index():
 
 @app.route('/categories')
 def categories():
-    print('categories')
-    return 'hello world this is numeral4.  I am born.'
+    r = Categories.just_show_all_categories_flask()
+    items = []
+    for item in r: 
+        items.append(item)
+    return render_template('category_reports.html', items=items)
 
 
 # @app.route('/')

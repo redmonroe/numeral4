@@ -64,3 +64,5 @@ num4_env_win/Scripts/runxlrd.py
 num4_env_win/share/jupyter/kernels/python3/logo-64x64.png
 num4_env_win/share/jupyter/kernels/python3/logo-32x32.png
 config.py
+app/schema.sql
+.flaskenv
