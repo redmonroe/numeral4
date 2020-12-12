@@ -1,9 +1,10 @@
 from app import app
-from app.models import Session, User, Categories, Reports, Accounts, Base
+from app.models import Session, engine, User, Categories, Reports, Accounts, Transactions, Base, and_
 from flask import render_template, flash, redirect, url_for, request
 from flask_login import current_user, login_user, logout_user, login_required
-from app.forms import LoginForm, RegistrationForm, AccountCreationForm, CategoryCreationForm
+from app.forms import LoginForm, RegistrationForm, AccountCreationForm, CategoryCreationForm, TransactionCreationForm
 from werkzeug.urls import url_parse
+import pandas as pd
 
 
 @app.route('/')
@@ -96,7 +97,21 @@ def create_account(username):
         s.add(new_account)
         s.commit()
         flash('congratulations, you created a new account')
+        return redirect(url_for('create_account')) #post/redirect/get pattern
     return render_template('create_account.html', form=form)
+
+@app.route('/account_register/<username>/<id>', methods=['GET', 'POST'])
+def account_register(username, id):
+    s = Session()
+    print(id)
+    user = s.query(User).filter_by(username=username).first()
+
+    r = s.query(Transactions).filter(and_(Transactions.user_id==user.id, Transactions.acct_id==id)).all()
+
+    for item in r:
+        print(item)
+
+    return render_template('account_register.html', items=r)
 
 @app.route('/categories/<username>')
 @login_required
@@ -125,4 +140,61 @@ def create_category(username):
         s.add(new_cat)
         s.commit()
         flash('congratulations, you created a new category')
+        return redirect(url_for('create_categories')) #post/redirect/get pattern
+
     return render_template('create_categories.html', form=form)
+
+@app.route('/transactions/<username>')
+@login_required
+def transactions(username):
+    s = Session()
+    user = s.query(User).filter_by(username=username).first()
+
+    r = s.query(Transactions).filter(Transactions.user_id==user.id).order_by(Transactions.date).all()
+
+    return render_template('view_transactions.html', items=r)
+
+@app.route('/create_transaction/<username>/', methods=['GET', 'POST'])
+@login_required
+def create_transaction(username):
+    s = Session()
+    user = s.query(User).filter_by(username=username).first()
+
+    r = s.query(Transactions).filter(Transactions.user_id==user.id).all()
+
+    form = TransactionCreationForm()
+    if form.validate_on_submit():
+        new_txn = Transactions()
+        new_txn.date = form.date.data
+        new_txn.amount = form.amount.data
+        new_txn.payee_name = form.payee_name.data
+        new_txn.user_id = user.id
+        s.add(new_txn)
+        s.commit()
+        flash('congratulations, you created a new transaction')
+        return redirect(url_for('create_transaction')) #post/redirect/get pattern
+
+    return render_template('create_transaction.html', form=form)
+
+@app.route('/export_csv/<username>/<id>', methods=['GET', 'POST'])
+@login_required
+def export_csv(username, id):
+    s = Session()
+    # username = 'jwalsh'
+    # id = 1
+    user = s.query(User).filter_by(username=username).first()
+    # print(user)
+
+
+    filtered_query = s.query(Transactions).filter(and_(Transactions.user_id==user.id, Transactions.acct_id==id))
+
+
+    df = pd.read_sql_query(filtered_query.statement, engine)
+
+    print(df.head(5))
+
+    return render_template('export.html')
+
+
+
+

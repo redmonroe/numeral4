@@ -11,7 +11,7 @@ from config import Config
 from dateutil.rrule import DAILY, MONTHLY, rrule
 from app import login
 from sqlalchemy import (Column, Date, ForeignKey, Integer, Numeric, String,
-                        between, create_engine, extract, or_)
+                        between, create_engine, extract, or_, and_)
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, sessionmaker, with_polymorphic
 from utils import utils
@@ -29,14 +29,7 @@ Base = declarative_base() # We need to inherit Base in order to register models 
 engine = create_engine(Config.DATABASE_URI_PANDAS, pool_size=20)
 Session = sessionmaker(bind=engine, expire_on_commit=False)
 
-#python-dateutils
-
-
-"""SEARCH FOR TODO"""
-#TODO: consolidate current_balance methods so that if I change scheme I don't get lost in a nightmare of twists and sqlturns: there is one in Accounts and one in Reports
-#TODO: I have an issue where when basic transaction repr shows the 'other' amount when transaction is a transfer, I can type this out in a query but this type of consideration has to be paramount when I am consolidating reporting functions; I want more from my repr!!!
-#TODO: automatically pull period beginning balance for reconcilation (instead of manually entered)
-
+#
 @login.user_loader
 def load_user(id):
     s = Session()
@@ -50,6 +43,7 @@ class User(UserMixin, Base):
     password_hash = Column(String(128))
     accounts = relationship('Accounts', backref='user')
     categories = relationship('Categories', backref='user')
+    transactions = relationship('Transactions', backref='user')
 
     def __repr__(self):
         return '<User {}>'.format(self.username) 
@@ -251,29 +245,6 @@ class Accounts(Base):
 
         net_change, id, name, type, end_balance, startbal = get_net_change(check_this_account_balance)
         print(net_change, id, name, type, 'end balance:', end_balance, startbal)
-        """
-
-
-        # all, choice = get_txn_by_account()
-        # for items in all:
-        #     print(items.acct_id)
-        #
-        # r = s.query(Accounts).filter(Accounts.id == choice).all()
-        #
-        # for item in r:
-        #     startbal = item.startbal
-        #     print(item.startbal)
-        # print(f'Start balance = {startbal}')
-        #
-        # cum_sum = [row.amount for row in all]
-        #
-        # amounts = 0
-        # for item in cum_sum:
-        #     amounts += item
-        #
-        # end_balance = startbal + amounts
-        # print(f'End balance = {end_balance}')
-        """
 
 class Categories(Base):
     __tablename__ = 'categories'
@@ -283,8 +254,6 @@ class Categories(Base):
     name = Column(String)
     inorex = Column(String)
     user_id = Column(Integer, ForeignKey('user.id'))
-    """revisit this when I clean up queries"""
-    # txn = relationship("Transactions", uselist=False, backref="cat")
 
     def __repr__(self):
         spacer = '**'
@@ -416,7 +385,7 @@ class Categories(Base):
         s.commit()
         s.close()
 
-@dataclass
+# @dataclass
 class Transactions(Base):
     __tablename__ = 'transactionlist' # table name in pg
 
@@ -427,12 +396,11 @@ class Transactions(Base):
     type = Column(String)
     # cat_id = Column(String, ForeignKey('categories.id'))
     cat_id = Column(String)
-    # split_amt1 = Column(Numeric)
     cat_id2 = Column(String)
     acct_id = Column(Integer, ForeignKey('accountlist.id'))
     amount2 = Column(Numeric)
     acct_id2 = Column(Integer, ForeignKey('accountlist.id'))
-
+    user_id = Column(Integer, ForeignKey('user.id'))
 
     def __repr__(self):
         spacer = '**'

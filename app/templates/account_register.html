@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+
+{% extends "base.html" %}
+
+{% block content %}
+<html>
+<head>
+    <style>
+      h1 {text-align: left;}
+      p {text-align: left;}
+      div {text-align: left;}
+    </style>
+    <title>register</title>
+</head>
+<body>
+    <h1>register</h1>
+    {% for item in items %}
+    <a href="{{ url_for('export_csv', username=current_user.username, id=item.id) }}">export csv</a>
+        <p>transaction : {{ item }} </p>
+        <hr>
+      {% endfor %}
+      <a href="{{ url_for('create_transaction', username=current_user.username) }}">create transactions</a>
+    </form>
+</body>
+</html>
+{% endblock %}

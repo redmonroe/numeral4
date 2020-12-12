@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+
+{% extends "base.html" %}
+
+{% block content %}
+<html>
+<head>
+    <style>
+      h1 {text-align: left;}
+      p {text-align: left;}
+      div {text-align: left;}
+    </style>
+    <title>export</title>
+    <h1>export complete</h1>
+    <a href="{{ url_for('accounts', username=current_user.username) }}">back to accounts</a>
+
+</head>
+<body>
+  
+</body>
+</html>
+{% endblock %}
