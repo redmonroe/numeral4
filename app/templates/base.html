@@ -1,0 +1,33 @@
+<html>
+    <head>
+      {% if title %}
+      <title>{{ title }} - numeral4</title>
+      {% else %}
+      <title>numeral4</title>
+      {% endif %}
+    </head>    
+    <body>
+        <div>
+            {% if current_user.is_anonymous %}
+            <a href="{{ url_for('login') }}">login</a>
+            {% else %}
+            <a href="{{ url_for('logout') }}">logout</a>
+            <a href="{{ url_for('index') }}">home</a>
+            <a href="{{ url_for('categories', username=current_user.username) }}">categories</a>
+            <a href="{{ url_for('accounts', username=current_user.username) }}">accounts</a>
+            {% endif %}
+        </div>
+        <hr>
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        <ul>
+            {% for message in messages %}
+            <li>{{ message }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        {% endwith %}
+        {% block content %}{% endblock %}
+    </body>
+</html>
+

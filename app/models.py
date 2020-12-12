@@ -3,18 +3,20 @@ import logging
 import sys
 from dataclasses import dataclass
 from datetime import date, datetime, time, timedelta
-# DATABASE_URI, DATABASE_URI_PANDAS, DL_FILE_PATH
 from decimal import ROUND_05UP, ROUND_HALF_UP, Decimal
+
 import numpy as np
 import pandas as pd
 from config import Config
 from dateutil.rrule import DAILY, MONTHLY, rrule
-from sqlalchemy import Column, Date, ForeignKey, Integer, Numeric, String, create_engine, extract, or_, between
+from app import login
+from sqlalchemy import (Column, Date, ForeignKey, Integer, Numeric, String,
+                        between, create_engine, extract, or_)
 from sqlalchemy.ext.declarative import declarative_base
-# from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import sessionmaker, with_polymorphic
-# from liltilities_as_class import Liltilities
+from sqlalchemy.orm import relationship, sessionmaker, with_polymorphic
 from utils import utils
+from werkzeug.security import check_password_hash, generate_password_hash
+from flask_login import UserMixin
 
 log = logging.getLogger(__name__)
 logging.basicConfig(
@@ -28,7 +30,6 @@ engine = create_engine(Config.DATABASE_URI_PANDAS, pool_size=20)
 Session = sessionmaker(bind=engine, expire_on_commit=False)
 
 #python-dateutils
-#flask
 
 
 """SEARCH FOR TODO"""
@@ -36,10 +37,29 @@ Session = sessionmaker(bind=engine, expire_on_commit=False)
 #TODO: I have an issue where when basic transaction repr shows the 'other' amount when transaction is a transfer, I can type this out in a query but this type of consideration has to be paramount when I am consolidating reporting functions; I want more from my repr!!!
 #TODO: automatically pull period beginning balance for reconcilation (instead of manually entered)
 
+@login.user_loader
+def load_user(id):
+    s = Session()
+    return s.query(User).get(int(id))
 
+class User(UserMixin, Base):
+    __tablename__ = 'user'
+    id = Column(Integer, primary_key=True)
+    username = Column(String(64), index=True, unique=True)
+    email = Column(String(120), index=True, unique=True)
+    password_hash = Column(String(128))
+    accounts = relationship('Accounts', backref='user')
+    categories = relationship('Categories', backref='user')
 
+    def __repr__(self):
+        return '<User {}>'.format(self.username) 
 
-@dataclass
+    def set_password(self, password):
+        self.password_hash = generate_password_hash(password)
+
+    def check_password(self, password):
+        return check_password_hash(self.password_hash, password)       
+
 class Accounts(Base):
     __tablename__ = 'accountlist'
 
@@ -48,7 +68,7 @@ class Accounts(Base):
     startbal = Column(Numeric)
     type = Column(String)
     status = Column(String) #either open or closed
-    # txn = relationship("Transactions", backref="txn")
+    user_id = Column(Integer, ForeignKey('user.id'))
 
     def __repr__(self): # do not fuck with this lightly
         return f'id:{self.id} name:{self.acct_name:<25} | type:{self.type:<10} sbal:{self.startbal:^8} status:{self.status}'
@@ -115,9 +135,9 @@ class Accounts(Base):
             cb_list.append(cur_bal)
             print(count, row, '| current:', cur_bal) # this should just print the repr
 
-        choice_row = dict(zip(rows, cb_list))
+        accounts_plus_balance = dict(zip(rows, cb_list))
         
-        return choice_row
+        return accounts_plus_balance
 
     @staticmethod
     def current_balance_for_just_show_all_accounts(id):
@@ -258,9 +278,11 @@ class Accounts(Base):
 class Categories(Base):
     __tablename__ = 'categories'
 
-    id = Column(String, primary_key=True)
+    id = Column(Integer, primary_key=True)
+    short_name = Column(String)
     name = Column(String)
     inorex = Column(String)
+    user_id = Column(Integer, ForeignKey('user.id'))
     """revisit this when I clean up queries"""
     # txn = relationship("Transactions", uselist=False, backref="cat")
 
@@ -331,6 +353,25 @@ class Categories(Base):
 
         choice_row = dict(zip(choices, rows))
         return choice_row
+
+    @staticmethod
+    def just_show_all_categories_flask():
+        """This function is (it is hoped) just a utility function for returning the enumerated repr of Categories
+
+        Returns:
+            dictionary: key is row presented to user; value is categories id string
+        """
+        s = Session()
+        choices = []
+        rows = []
+        r = s.query(Categories).order_by(Categories.inorex)
+        for count, row in enumerate(r, 1):
+            choices.append(count)
+            rows.append(row.id)
+            print(count, row)
+
+        choice_row = dict(zip(choices, rows))
+        return r
 
     @staticmethod
     def update_categories(s, clsname, instance):

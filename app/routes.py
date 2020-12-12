@@ -1,56 +1,128 @@
 from app import app
-from app.models import Categories
-from flask import render_template
+from app.models import Session, User, Categories, Reports, Accounts, Base
+from flask import render_template, flash, redirect, url_for, request
+from flask_login import current_user, login_user, logout_user, login_required
+from app.forms import LoginForm, RegistrationForm, AccountCreationForm, CategoryCreationForm
+from werkzeug.urls import url_parse
 
-
-# from flask import Flask, render_template, flash, redirect, url_for
-# from flask_sqlalchemy import SQLAlchemy
-# from flask_migrate import Migrate
-# from numeral4.config import Config
-# from forms import LoginForm
-
-
-# app.config.from_object(Config) #this is really useful to know
-# db = SQLAlchemy(app)
-# migrate = Migrate(app, db)
 
 @app.route('/')
 @app.route('/index')
+@login_required
 def index():
-    return 'hello world this is numeral4.  I am born.'
+    string = 'hello world this is numeral4.  I am born December 10, 2020.'
+    return render_template('index.html', title='Sign In', string=string)
 
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
+    form = LoginForm()
+    if form.validate_on_submit():
+        s = Session()
+        user = s.query(User).filter_by(username=form.username.data).first()
+        print('this is user;;;;;',user)
 
-@app.route('/categories')
-def categories():
-    r = Categories.just_show_all_categories_flask()
-    items = []
-    for item in r: 
-        items.append(item)
-    return render_template('category_reports.html', items=items)
+        if user is None or not user.check_password(form.password.data):
+            flash('Invalid username or password')
+            return redirect(url_for('login'))
 
+        login_user(user, remember=form.remember_me.data)
+        next_page = request.args.get('next')
+        if not next_page or url_parse(next_page).netloc != '':
+            next_page = url_for('index')
+        return redirect(next_page)
+    return render_template('login.html', title='Sign In', form=form)
 
-# @app.route('/')
-# @app.route('/index')
-# def index():
-#     user = {'username': 'Joseph'}
-#     posts = [
-#         {
-#             'author': {'username': 'John'},
-#             'body': 'Beautiful day in Portland!'
-#         },
-#         {
-#             'author': {'username': 'Susan'},
-#             'body': 'The Avengers movie was so cool!'
-#         }
-#     ]
-#     return render_template('index.html', title='Home', user=user, posts=posts)
+@app.route('/logout')
+def logout():
+    logout_user()
+    return redirect(url_for('index'))
 
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    s = Session()
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
+    form = RegistrationForm()
+    if form.validate_on_submit():
+        user = User(username=form.username.data, email=form.email.data)
+        user.set_password(form.password.data)
+        s.add(user)
+        s.commit()
+        flash('Congratulations, you are now a registered user!')
+        return redirect(url_for('login'))
+    return render_template('register.html', title='Register', form=form)
 
-# @app.route('/login', methods=['GET', 'POST'])
-# def login():
-#     form = LoginForm()
-#     if form.validate_on_submit():
-#         flash('Login requested for user {}, remember_me={}'.format(
-#             form.username.data, form.remember_me.data))
-#         return redirect(url_for('index'))
-#     return render_template('login.html', title='Sign In', form=form)
+@app.route('/user/<username>')
+@login_required
+def user(username):
+    s = Session()
+    user = s.query(User).filter_by(username=username).first()
+
+    accounts = s.query(Accounts).filter_by(Accounts.user_id==user.id).all()
+    # accounts = [
+    #     {'user': user, 'body': accou},
+    #     {'user': user, 'body': 'Test post #2'}
+    # ]
+    return render_template('user.html', user=user, accounts=accounts)
+
+@app.route('/accounts/<username>/')
+@login_required
+def accounts(username):
+    s = Session()
+    user = s.query(User).filter_by(username=username).first()
+
+    r = s.query(Accounts).filter(Accounts.user_id==user.id).all()
+
+    return render_template('view_accounts.html', items=r)
+
+@app.route('/create_account/<username>/', methods=['GET', 'POST'])
+@login_required
+def create_account(username):
+    s = Session()
+    user = s.query(User).filter_by(username=username).first()
+
+    r = s.query(Accounts).filter(Accounts.user_id==user.id).all()
+
+    form = AccountCreationForm()
+    if form.validate_on_submit():
+        new_account = Accounts()
+        new_account.acct_name = form.acct_name.data
+        new_account.startbal = form.startbal.data
+        new_account.type = form.type.data
+        new_account.status = form.status.data
+        new_account.user_id = user.id
+        s.add(new_account)
+        s.commit()
+        flash('congratulations, you created a new account')
+    return render_template('create_account.html', form=form)
+
+@app.route('/categories/<username>')
+@login_required
+def categories(username):
+    s = Session()
+    user = s.query(User).filter_by(username=username).first()
+
+    r = s.query(Categories).filter(Categories.user_id==user.id).all()
+
+    return render_template('view_categories.html', items=r)
+
+@app.route('/create_category/<username>/', methods=['GET', 'POST'])
+@login_required
+def create_category(username):
+    s = Session()
+    user = s.query(User).filter_by(username=username).first()
+
+    r = s.query(Categories).filter(Categories.user_id==user.id).all()
+
+    form = CategoryCreationForm()
+    if form.validate_on_submit():
+        new_cat = Categories()
+        new_cat.name = form.name.data
+        new_cat.inorex = form.inorex.data
+        new_cat.user_id = user.id
+        s.add(new_cat)
+        s.commit()
+        flash('congratulations, you created a new category')
+    return render_template('create_categories.html', form=form)

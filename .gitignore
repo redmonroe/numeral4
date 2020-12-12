@@ -66,3 +66,11 @@ num4_env_win/share/jupyter/kernels/python3/logo-32x32.png
 config.py
 app/schema.sql
 .flaskenv
+app/templates/dep_templates/account_form.html
+app/templates/dep_templates/accounts.html
+app/templates/dep_templates/compute_stop.html
+app/templates/dep_templates/delete_accounts.html
+app/templates/dep_templates/delete_one.html
+app/templates/dep_templates/index.html
+app/templates/dep_templates/view_posts.html
+app/templates/dep_templates/view_transactions.html

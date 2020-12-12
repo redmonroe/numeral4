@@ -1,10 +1,18 @@
 <!DOCTYPE html>
 <html>
+{% extends "base.html" %}
+
+{% block content %}
 <head>
     <p>numeral</p>
 </head>
 <body>
     <h1>Actions</h1>
+    {{  string  }}
+
+    <h1>Hi, {{ current_user.username }}!</h1>
+
+
     </form>
     <!-- Link back to Account View: -->
     <p><a href="/accountview">View Accounts & Access Ledgers</a></p>
@@ -16,3 +24,4 @@
 
 </body>
 </html>
+{% endblock %}
