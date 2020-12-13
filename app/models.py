@@ -1736,9 +1736,22 @@ class Export(object):
 
                 cw.writerow(transfer_gen)
 
-             
+
+
+
+
+
+
+
 if __name__ == "__main__":
-    Reports.transaction_report(filter='date', account=1)
+
+  
+
+
+
+
+
+    # Reports.transaction_report(filter='date', account=1)
     '''
     what kinds of things would we want to do:
     * select by account

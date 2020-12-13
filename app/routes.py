@@ -2,7 +2,7 @@ from app import app
 from app.models import Session, engine, User, Categories, Reports, Accounts, Transactions, Base, and_
 from flask import render_template, flash, redirect, url_for, request
 from flask_login import current_user, login_user, logout_user, login_required
-from app.forms import LoginForm, RegistrationForm, AccountCreationForm, CategoryCreationForm, TransactionCreationForm
+from app.forms import LoginForm, RegistrationForm, AccountCreationForm, CategoryCreationForm, TransactionCreationForm, PostEngineForm
 from werkzeug.urls import url_parse
 import pandas as pd
 
@@ -103,15 +103,12 @@ def create_account(username):
 @app.route('/account_register/<username>/<id>', methods=['GET', 'POST'])
 def account_register(username, id):
     s = Session()
-    print(id)
+    
     user = s.query(User).filter_by(username=username).first()
 
-    r = s.query(Transactions).filter(and_(Transactions.user_id==user.id, Transactions.acct_id==id)).all()
+    r = s.query(Transactions).filter(and_(Transactions.user_id==user.id, Transactions.acct_id==id, Transactions.type != 'notposted')).all()
 
-    for item in r:
-        print(item)
-
-    return render_template('account_register.html', items=r)
+    return render_template('account_register.html', items=r, id=id)
 
 @app.route('/categories/<username>')
 @login_required
@@ -176,20 +173,63 @@ def create_transaction(username):
 
     return render_template('create_transaction.html', form=form)
 
+@app.route('/unposted/<username>/', methods=['GET', 'POST'])
+@login_required
+def unposted(username):
+    s = Session()
+    user = s.query(User).filter_by(username=username).first()
+
+    r = s.query(Transactions).filter(Transactions.user_id==user.id, Transactions.type == 'notposted').order_by(Transactions.date).all()
+
+    # form = TransactionCreationForm()
+    # if form.validate_on_submit():
+    #     new_txn = Transactions()
+    #     new_txn.date = form.date.data
+    #     new_txn.amount = form.amount.data
+    #     new_txn.payee_name = form.payee_name.data
+    #     new_txn.user_id = user.id
+    #     s.add(new_txn)
+    #     s.commit()
+    #     flash('congratulations, you created a new transaction')
+        # return render_template('xxxx') #post/redirect/get pattern
+
+    return render_template('unposted.html', items=r)
+
+@app.route('/post_engine/<username>/<id>', methods=['GET', 'POST'])
+@login_required
+def post_engine(username, id):
+    s = Session()
+    user = s.query(User).filter_by(username=username).first()
+
+    r = s.query(Transactions).filter(Transactions.user_id==user.id, Transactions.id == id).first()
+
+    form = PostEngineForm()
+    if form.validate_on_submit():
+        choice = form.type.data
+        print(choice)
+    #     new_txn.date = form.date.data
+    #     new_txn.amount = form.amount.data
+    #     new_txn.payee_name = form.payee_name.data
+    #     new_txn.user_id = user.id
+    #     s.add(new_txn)
+    #     s.commit()
+    #     flash('congratulations, you created a new transaction')
+        # return render_template('xxxx') #post/redirect/get pattern
+
+    return render_template('post_engine.html', items=r, form=form)
+
 @app.route('/export_csv/<username>/<id>', methods=['GET', 'POST'])
 @login_required
 def export_csv(username, id):
     s = Session()
-    # username = 'jwalsh'
-    # id = 1
+ 
     user = s.query(User).filter_by(username=username).first()
-    # print(user)
 
-
-    filtered_query = s.query(Transactions).filter(and_(Transactions.user_id==user.id, Transactions.acct_id==id))
+    filtered_query = s.query(Transactions).filter(and_(Transactions.user_id==user.id, Transactions.acct_id==id, Transactions.type != 'notposted'))
 
 
     df = pd.read_sql_query(filtered_query.statement, engine)
+    df.to_csv(f'mycsv user {username} account {id}.csv')
 
     print(df.head(5))
 

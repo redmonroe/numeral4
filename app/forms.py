@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, DateField, BooleanField, SubmitField, DecimalField
+from wtforms import StringField, PasswordField, DateField, BooleanField, SubmitField, DecimalField, SelectField
 from wtforms.validators import ValidationError, DataRequired, Email, EqualTo
 from app.models import User, Session
 
@@ -54,3 +54,6 @@ class TransactionCreationForm(FlaskForm):
     # acct_id2 = Column(Integer, ForeignKey('accountlist.id'))
     # user_id = Column(Integer, ForeignKey('user.id'))
 
+class PostEngineForm(FlaskForm):
+    type = SelectField('post as?', choices=[('regular', 'regular'), ('split', 'split transaction'), ('transfer', 'transfer')])
+    submit = SubmitField('press to select')

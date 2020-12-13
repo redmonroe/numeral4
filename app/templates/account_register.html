@@ -14,8 +14,8 @@
 </head>
 <body>
     <h1>register</h1>
+    <a href="{{ url_for('export_csv', username=current_user.username, id=id) }}">export csv</a>
     {% for item in items %}
-    <a href="{{ url_for('export_csv', username=current_user.username, id=item.id) }}">export csv</a>
         <p>transaction : {{ item }} </p>
         <hr>
       {% endfor %}

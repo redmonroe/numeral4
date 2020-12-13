@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+
+{% extends "base.html" %}
+
+{% block content %}
+<html>
+<head>
+    <title>showing unposted transactions</title>
+</head>
+<body>
+    <h1>unposted</h1>
+      {% for item in items %}
+      
+      <p>transactions : {{ item.date }} {{ item.payee_name }} {{ item.amount }} {{  item.type  }}  {{  item.cat_id }} {{  item.amount2 }} <a href="{{ url_for('post_engine', username=current_user.username, id=item.id) }}">post engine</a></p>
+        <hr>
+      {% endfor %}
+    </form>
+</body>
+</html>
+{% endblock %}
