@@ -29,11 +29,12 @@ Base = declarative_base() # We need to inherit Base in order to register models 
 engine = create_engine(Config.DATABASE_URI_PANDAS, pool_size=20)
 Session = sessionmaker(bind=engine, expire_on_commit=False)
 
-#
+#TODO: try to keep session alive across function calls instead of instantiating it in function
 @login.user_loader
 def load_user(id):
     s = Session()
     return s.query(User).get(int(id))
+
 
 class User(UserMixin, Base):
     __tablename__ = 'user'
