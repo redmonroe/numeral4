@@ -9,12 +9,26 @@
 </head>
 <body>
     <h1>unposted</h1>
-      {% for item in items %}
-      
-      <p>transactions : {{ item.date }} {{ item.payee_name }} {{ item.amount }} {{  item.type  }}  {{  item.cat_id }} {{  item.amount2 }} <a href="{{ url_for('post_engine', username=current_user.username, id=item.id) }}">post engine</a></p>
+    {% for item in items.items %}
+    <p>unposted transactions : {{ item.date }} {{ item.payee_name }} {{ item.amount }} {{  item.type  }}  {{  item.cat_id }} {{  item.amount2 }} <a href="{{ url_for('post_engine', username=current_user.username, id=item.id) }}">post engine</a></p>
         <hr>
       {% endfor %}
+    <ul class="pagination">
+      {% if items.has_prev %}
+      <li class="page-item"> <a class="page-link" href="{{ url_for('unposted', username=current_user.username, page=items.prev_num) }}">Previous</a></li>
+    {% else %}
+      <li class="page-item"><a class="page-link btn disabled" href="#">Previous</a></li>
+    {% endif %}
+
+    {% if items.has_next %}
+      <li class="page-item"> <a class="page-link" href="{{ url_for('unposted', username=current_user.username, page=items.next_num) }}">Next</a></li>
+    {% else %}
+      <li class="page-item"><a class="page-link btn disabled" href="#">Next</a></li>
+    {% endif %}
+      
+      
     </form>
+  </ul>
 </body>
 </html>
 {% endblock %}

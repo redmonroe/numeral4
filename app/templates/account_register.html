@@ -13,13 +13,28 @@
     <title>register</title>
 </head>
 <body>
-    <h1>register</h1>
+    <h1>register, user id = {{ id }}, starting balance = {{ startbal.startbal }}</h1>
     <a href="{{ url_for('export_csv', username=current_user.username, id=id) }}">export csv</a>
-    {% for item in items %}
-        <p>transaction : {{ item }} </p>
-        <hr>
-      {% endfor %}
-      <a href="{{ url_for('create_transaction', username=current_user.username) }}">create transactions</a>
+       <a href="{{ url_for('create_transaction', username=current_user.username) }}">create transactions</a>
+      {% for item in items.items %}
+      <p>transactions : {{ item.date }} {{ item.payee_name }} {{ item.amount }} {{  item.type  }}  {{  item.cat_id }} {{  item.amount2 }} <a href="{{ url_for('create_transaction', username=current_user.username, id=item.id) }}">create transactions</a></p>
+          <hr>
+        {% endfor %}
+      <ul class="pagination">
+        {% if items.has_prev %}
+        <li class="page-item"> <a class="page-link" href="{{ url_for('account_register', username=current_user.username, id=id, page=items.prev_num) }}">Previous</a></li>
+      {% else %}
+        <li class="page-item"><a class="page-link btn disabled" href="#">Previous</a></li>
+      {% endif %}
+  
+      {% if items.has_next %}
+        <li class="page-item"> <a class="page-link" href="{{ url_for('account_register', username=current_user.username, id=id, page=items.next_num) }}">Next</a></li>
+      {% else %}
+        <li class="page-item"><a class="page-link btn disabled" href="#">Next</a></li>
+      {% endif %}
+      <p>current balance: {{ curbal }}</p>
+    
+    
     </form>
 </body>
 </html>

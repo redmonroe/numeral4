@@ -9,11 +9,23 @@
 </head>
 <body>
     <h1>transactions</h1>
-      {% for item in items %}
-        <p>transactions : {{ item.date }} {{ item.payee_name }} {{ item.amount }} {{  item.type  }}  {{  item.cat_id }} {{  item.amount2 }}</p>
+    {% for item in items.items %}
+    <p>transactions : {{ item.date }} {{ item.payee_name }} {{ item.amount }} {{  item.type  }}  {{  item.cat_id }} {{  item.amount2 }} <a href="{{ url_for('create_transaction', username=current_user.username, id=item.id) }}">edit transaction #todo</a></p>
         <hr>
-      {% endfor %}
-      <a href="{{ url_for('create_transaction', username=current_user.username) }}">create transactions</a>
+    {% endfor %}
+    <ul class="pagination">
+      {% if items.has_prev %}
+      <li class="page-item"> <a class="page-link" href="{{ url_for('transactions', username=current_user.username, page=items.prev_num) }}">Previous</a></li>
+    {% else %}
+      <li class="page-item"><a class="page-link btn disabled" href="#">Previous</a></li>
+    {% endif %}
+
+    {% if items.has_next %}
+      <li class="page-item"> <a class="page-link" href="{{ url_for('transactions', username=current_user.username, page=items.next_num) }}">Next</a></li>
+    {% else %}
+      <li class="page-item"><a class="page-link btn disabled" href="#">Next</a></li>
+    {% endif %}
+    <p>current balance:</p>  {{ curbal }}
     </form>
 </body>
 </html>
