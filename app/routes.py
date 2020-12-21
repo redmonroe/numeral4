@@ -1,5 +1,6 @@
 from app import app
-from app.models import Session, engine, User, Categories, Reports, Accounts, Transactions, Base, and_
+from decimal import Decimal
+from app.models import MyQuery, sessionmaker, Session, engine, User, Categories, Reports, Accounts, Transactions, Base, and_
 from flask import render_template, flash, redirect, url_for, request
 from flask_login import current_user, login_user, logout_user, login_required
 from app.forms import LoginForm, RegistrationForm, AccountCreationForm, CategoryCreationForm, TransactionCreationForm, PostEngineForm
@@ -97,18 +98,89 @@ def create_account(username):
         s.add(new_account)
         s.commit()
         flash('congratulations, you created a new account')
-        return redirect(url_for('create_account')) #post/redirect/get pattern
+        return redirect(url_for('create_account', username=username)) #post/redirect/get pattern
     return render_template('create_account.html', form=form)
 
-@app.route('/account_register/<username>/<id>', methods=['GET', 'POST'])
-def account_register(username, id):
+@app.route('/delete_account/<username>', methods=['GET', 'POST'])
+@login_required
+def delete_account(username):
     s = Session()
-    
     user = s.query(User).filter_by(username=username).first()
 
-    r = s.query(Transactions).filter(and_(Transactions.user_id==user.id, Transactions.acct_id==id, Transactions.type != 'notposted')).all()
+    r = s.query(Accounts).filter(Accounts.user_id==user.id).all()
 
-    return render_template('account_register.html', items=r, id=id)
+        # flash('congratulations, you created a new account')
+        # return redirect(url_for('delete_account', username=username)) #post/redirect/get pattern
+    return render_template('delete_account.html', items=r )
+
+@app.route('/deleted/<username>/<id>', methods=['GET', 'POST'])
+@login_required
+def deleted(username, id):
+    s = Session()
+    user = s.query(User).filter_by(username=username).first()
+
+    r = s.query(Accounts).get(id)
+
+    s.delete(r)
+    s.commit()
+
+
+        # flash('congratulations, you created a new account')
+        # return redirect(url_for('delete_account', username=username)) #post/redirect/get pattern
+    return render_template('deleted.html', item=r )
+
+@app.route('/account_register/<username>/<id>', methods=['GET', 'POST'], defaults={"page": 1})
+@app.route('/account_register/<username>/<id>/<int:page>', methods=['GET'])
+@login_required
+def account_register(username, id, page):
+    s = Session()
+    user = s.query(User).filter_by(username=username).first()
+    '''current balance
+    this need consolidation
+    '''
+    print(id, username, page)
+
+    
+    results = []
+    r = s.query(Transactions).filter(Transactions.acct_id2 == id, Transactions.type != 'notposted').all()
+    r2 = s.query(Transactions).filter(Transactions.acct_id == id, Transactions.type != 'notposted').all()
+    for item in r:
+        results.append(item)
+    for item in r2:
+        results.append(item)
+
+    bal_list = []
+    starting_balance = s.query(Accounts).filter(Accounts.id == id).first()
+    print('ok', starting_balance.startbal)
+
+    for item in results:
+        if item.type == 'transfers' and item.acct_id2 == id:
+            bal_list.append(item.amount2)
+        elif item.type == 'transfers' and item.acct_id== id:
+            bal_list.append(item.amount)
+        elif item.type == 'transactions':
+            bal_list.append(item.amount)
+
+    # print("ballise:", bal_list)
+    print('bal_list sum', sum( bal_list))
+    curbal = Decimal(starting_balance.startbal) + sum(bal_list)
+    print('curbal', curbal)
+
+    '''
+    transaction: below
+    '''
+
+
+    r = s.query(Transactions).filter(Transactions.user_id==user.id, Transactions.type != 'notposted').order_by(Transactions.date).all()
+
+    CustomSession = sessionmaker(bind=engine, query_cls=MyQuery, expire_on_commit=False)
+
+    s = CustomSession()
+    q = MyQuery(Transactions,s)
+
+    items = q.filter(Transactions.user_id==user.id, Transactions.type != 'notposted').order_by(Transactions.date).paginate(page, per_page=10, error_out=False)
+
+    return render_template('account_register.html', startbal=starting_balance, items=items, curbal=curbal, id=id)
 
 @app.route('/categories/<username>')
 @login_required
@@ -141,15 +213,54 @@ def create_category(username):
 
     return render_template('create_categories.html', form=form)
 
-@app.route('/transactions/<username>')
+@app.route('/transactions/<username>', methods=['GET'], defaults={"page": 1})
+@app.route('/transactions/<username>/<int:page>', methods=['GET'])
 @login_required
-def transactions(username):
+def transactions(username, page):
     s = Session()
     user = s.query(User).filter_by(username=username).first()
+    '''current balance
+    this need consolidation
+    '''
 
-    r = s.query(Transactions).filter(Transactions.user_id==user.id).order_by(Transactions.date).all()
+    # id = 1 # this is the account id
+    results = []
+    r = s.query(Transactions).filter(Transactions.acct_id2 == id, Transactions.type != 'notposted').all()
+    r2 = s.query(Transactions).filter(Transactions.acct_id == id, Transactions.type != 'notposted').all()
+    for item in r:
+        results.append(item)
+    for item in r2:
+        results.append(item)
 
-    return render_template('view_transactions.html', items=r)
+    bal_list = []
+    starting_balance = s.query(Accounts).filter(Accounts.id == id).first()
+
+    for item in results:
+        if item.type == 'transfers' and item.acct_id2 == id:
+            bal_list.append(item.amount2)
+        elif item.type == 'transfers' and item.acct_id== id:
+            bal_list.append(item.amount)
+        elif item.type == 'transactions':
+            bal_list.append(item.amount)
+
+    curbal = Decimal(starting_balance.startbal) + sum(bal_list)
+    print(curbal)
+
+    '''
+    transaction: below
+    '''
+
+
+    r = s.query(Transactions).filter(Transactions.user_id==user.id, Transactions.type != 'notposted').order_by(Transactions.date).all()
+
+    CustomSession = sessionmaker(bind=engine, query_cls=MyQuery, expire_on_commit=False)
+
+    s = CustomSession()
+    q = MyQuery(Transactions,s)
+
+    items = q.filter(Transactions.user_id==user.id, Transactions.type != 'notposted').order_by(Transactions.date).paginate(page, per_page=10, error_out=False)
+
+    return render_template('view_transactions.html', items=items, curbal=curbal)
 
 @app.route('/create_transaction/<username>/', methods=['GET', 'POST'])
 @login_required
@@ -173,13 +284,29 @@ def create_transaction(username):
 
     return render_template('create_transaction.html', form=form)
 
-@app.route('/unposted/<username>/', methods=['GET', 'POST'])
+@app.route('/unposted/<username>/', methods=['GET'], defaults={"page": 1})
+@app.route('/unposted/<username>/<int:page>', methods=['GET'])
 @login_required
-def unposted(username):
+def unposted(username, page):
     s = Session()
     user = s.query(User).filter_by(username=username).first()
 
     r = s.query(Transactions).filter(Transactions.user_id==user.id, Transactions.type == 'notposted').order_by(Transactions.date).all()
+
+    '''
+    pagination test goes here
+    '''
+    CustomSession = sessionmaker(bind=engine, query_cls=MyQuery, expire_on_commit=False)
+    '''
+    CustomSession should still have filter, order_by, etc
+    '''
+    s = CustomSession()
+    q = MyQuery(Transactions,s)
+
+    items = q.filter(Transactions.user_id==user.id, Transactions.type == 'notposted').order_by(Transactions.date).paginate(page, per_page=10, error_out=False)
+
+    for page in items.iter_pages():
+        print(page)
 
     # form = TransactionCreationForm()
     # if form.validate_on_submit():
@@ -193,7 +320,7 @@ def unposted(username):
     #     flash('congratulations, you created a new transaction')
         # return render_template('xxxx') #post/redirect/get pattern
 
-    return render_template('unposted.html', items=r)
+    return render_template('unposted.html', items=items)
 
 @app.route('/post_engine/<username>/<id>', methods=['GET', 'POST'])
 @login_required
