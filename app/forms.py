@@ -36,25 +36,34 @@ class AccountCreationForm(FlaskForm):
     status = StringField('open or closed?', validators=[DataRequired()])
     submit = SubmitField('create account')
 
+class EditAccountForm(AccountCreationForm):
+    submit = SubmitField('submit account changes')
+
 class CategoryCreationForm(FlaskForm):
     name = StringField('category name', validators=[DataRequired()])
     inorex = StringField('income or expense account?', validators=[DataRequired()])
     submit = SubmitField('create category')
 
+class EditCategoryForm(CategoryCreationForm):
+    submit = SubmitField('submit category changes')
+
 class TransactionCreationForm(FlaskForm):
     date = DateField('date', validators=[DataRequired()])
-    # type = Column(String)
+    type = SelectField('type? transaction by default', choices=[('transactions', 'transactions'), ('split', 'split'), ('transfer', 'transfer')])
     amount = DecimalField('amount (- for expense)', validators=[DataRequired()])
     payee_name = StringField('payee name')
-    submit = SubmitField('add transaction to register')
     acct_id = SelectField('distribution account?', validators=[DataRequired()])
     cat_id = SelectField('category?', validators=[DataRequired()])
+    submit = SubmitField('add transaction to register')
     # cat_id = Column(String)
     # cat_id2 = Column(String)
     # acct_id = Column(Integer, ForeignKey('accountlist.id'))
     # amount2 = Column(Numeric)
     # acct_id2 = Column(Integer, ForeignKey('accountlist.id'))
     # user_id = Column(Integer, ForeignKey('user.id'))
+
+class EditTransactionForm(TransactionCreationForm):
+    submit = SubmitField('submit changes to transaction')
 
 class PostEngineForm(FlaskForm):
     type = SelectField('post as?', choices=[('regular', 'regular'), ('split', 'split transaction'), ('transfer', 'transfer')])

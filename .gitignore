@@ -75,3 +75,6 @@ app/templates/dep_templates/delete_one.html
 app/templates/dep_templates/index.html
 app/templates/dep_templates/view_posts.html
 app/templates/dep_templates/view_transactions.html
+download_here/category_list_for_load_category_function.xlsx
+Pagination Mixin sketches.ipynb
+jupyter tests.ipynb

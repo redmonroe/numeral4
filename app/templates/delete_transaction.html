@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+
+{% extends "base.html" %}
+
+{% block content %}
+<html>
+<head>
+    <style>
+      h1 {text-align: left;}
+      p {text-align: left;}
+      div {text-align: left;}
+    </style>
+    <title>delete transaction</title>
+</head>
+<body>
+    <h1>delete transaction</h1>
+      {% for item in items %}
+        <p>transaction : <a href={{ url_for('account_register', username=current_user.username, id=item.id)}}> {{ item.id }}</a> <div> select id to delete category:  <a href="{{ url_for('deletedtrxn', username=current_user.username, id=item.id)  }}"> {{ item.id }} {{ item.date }} {{ item.payee_name }} {{ item.amount }} {{ item.cat_id }} </a>  </p>
+        <hr>
+      {% endfor %}
+      <a href="{{ url_for('create_category', username=current_user.username) }}">create category</a>
+      <a href="{{ url_for('delete_category', username=current_user.username) }}">delete category</a>
+    </form>
+</body>
+</html>
+{% endblock %}

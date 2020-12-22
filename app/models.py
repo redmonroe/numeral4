@@ -123,8 +123,8 @@ class Accounts(Base):
     status = Column(String) #either open or closed
     user_id = Column(Integer, ForeignKey('user.id'))
 
-    def __repr__(self): # do not fuck with this lightly
-        return f'id:{self.id} name:{self.acct_name:<25} | type:{self.type:<10} sbal:{self.startbal:^8} status:{self.status}'
+    # def __repr__(self): # do not fuck with this lightly
+    #     return f'id:{self.id} name:{self.acct_name:<25} | type:{self.type:<10} sbal:{self.startbal:^8} status:{self.status}'
 
     @staticmethod
     def create_accounts(s, clsname, instance, display_names):
