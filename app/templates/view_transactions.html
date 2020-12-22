@@ -27,6 +27,7 @@
     {% endif %}
     <p>current balance:</p>  {{ curbal }}
     </form>
+    <a href="{{ url_for('create_transaction', username=current_user.username) }}">create transactions</a></p>
 </body>
 </html>
 {% endblock %}

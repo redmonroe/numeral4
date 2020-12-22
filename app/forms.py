@@ -34,7 +34,7 @@ class AccountCreationForm(FlaskForm):
     startbal = DecimalField('starting balance', validators=[DataRequired()])
     type = StringField('asset or liability?', validators=[DataRequired()])
     status = StringField('open or closed?', validators=[DataRequired()])
-    submit = SubmitField('create category')
+    submit = SubmitField('create account')
 
 class CategoryCreationForm(FlaskForm):
     name = StringField('category name', validators=[DataRequired()])
@@ -43,10 +43,12 @@ class CategoryCreationForm(FlaskForm):
 
 class TransactionCreationForm(FlaskForm):
     date = DateField('date', validators=[DataRequired()])
+    # type = Column(String)
     amount = DecimalField('amount (- for expense)', validators=[DataRequired()])
     payee_name = StringField('payee name')
-    # type = Column(String)
-    # # cat_id = Column(String, ForeignKey('categories.id'))
+    submit = SubmitField('add transaction to register')
+    acct_id = SelectField('distribution account?', validators=[DataRequired()])
+    cat_id = SelectField('category?', validators=[DataRequired()])
     # cat_id = Column(String)
     # cat_id2 = Column(String)
     # acct_id = Column(Integer, ForeignKey('accountlist.id'))

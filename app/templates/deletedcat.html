@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+
+{% extends "base.html" %}
+
+{% block content %}
+<html>
+<head>
+    <style>
+      h1 {text-align: left;}
+      p {text-align: left;}
+      div {text-align: left;}
+    </style>
+    <title>deleting categories . . . </title>
+</head>
+<body>
+    <h1>you successfully deleted categories: </h1>
+        <p>categories : {{ item.id }} {{ item  }} </p>
+   
+      <a href="{{ url_for('create_account', username=current_user.username) }}">create account</a>
+      <a href="{{ url_for('delete_account', username=current_user.username) }}">delete account</a>
+    </form>
+</body>
+</html>
+{% endblock %}

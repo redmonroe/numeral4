@@ -6,6 +6,18 @@ from flask_login import current_user, login_user, logout_user, login_required
 from app.forms import LoginForm, RegistrationForm, AccountCreationForm, CategoryCreationForm, TransactionCreationForm, PostEngineForm
 from werkzeug.urls import url_parse
 import pandas as pd
+from sqlalchemy.exc import ProgrammingError
+
+
+### TODO:
+    #anything not categorized should be uncategorized
+    # create
+    # delete
+    # update
+    # import, posting, adding categories
+    # reports: annual expenses by month
+    # export
+    # reconciliation
 
 
 @app.route('/')
@@ -124,10 +136,8 @@ def deleted(username, id):
     s.delete(r)
     s.commit()
 
-
-        # flash('congratulations, you created a new account')
-        # return redirect(url_for('delete_account', username=username)) #post/redirect/get pattern
-    return render_template('deleted.html', item=r )
+    flash('congratulations, you deleted an account')
+    return redirect(url_for('accounts', username=username)) #post/redirect/get pattern
 
 @app.route('/account_register/<username>/<id>', methods=['GET', 'POST'], defaults={"page": 1})
 @app.route('/account_register/<username>/<id>/<int:page>', methods=['GET'])
@@ -203,15 +213,44 @@ def create_category(username):
     form = CategoryCreationForm()
     if form.validate_on_submit():
         new_cat = Categories()
+        new_cat.id = None
         new_cat.name = form.name.data
         new_cat.inorex = form.inorex.data
         new_cat.user_id = user.id
         s.add(new_cat)
         s.commit()
+        s.close()
         flash('congratulations, you created a new category')
-        return redirect(url_for('create_categories')) #post/redirect/get pattern
+        return redirect(url_for('create_category', username=username)) #post/redirect/get pattern
 
     return render_template('create_categories.html', form=form)
+
+
+@app.route('/delete_category/<username>', methods=['GET', 'POST'])
+@login_required
+def delete_category(username):
+
+    s = Session()
+    user = s.query(User).filter_by(username=username).first()
+
+    r = s.query(Categories).filter(Categories.user_id==user.id).all()
+
+    return render_template('delete_category.html', items=r )
+
+@app.route('/deletedcat/<username>/<id>', methods=['GET', 'POST'])
+@login_required
+def deletedcat(username, id):
+    s = Session()
+    user = s.query(User).filter_by(username=username).first()
+
+    r = s.query(Categories).get(id)
+
+    s.delete(r)
+    s.commit()
+    s.close()
+
+    flash('congratulations, you deleted an account')
+    return redirect(url_for('categories', username=username)) #post/redirect/get pattern
 
 @app.route('/transactions/<username>', methods=['GET'], defaults={"page": 1})
 @app.route('/transactions/<username>/<int:page>', methods=['GET'])
@@ -223,29 +262,31 @@ def transactions(username, page):
     this need consolidation
     '''
 
-    # id = 1 # this is the account id
-    results = []
-    r = s.query(Transactions).filter(Transactions.acct_id2 == id, Transactions.type != 'notposted').all()
-    r2 = s.query(Transactions).filter(Transactions.acct_id == id, Transactions.type != 'notposted').all()
-    for item in r:
-        results.append(item)
-    for item in r2:
-        results.append(item)
+    try:
+        results = []
+        r = s.query(Transactions).filter(Transactions.acct_id2 == id, Transactions.type != 'notposted').all()
+        r2 = s.query(Transactions).filter(Transactions.acct_id == id, Transactions.type != 'notposted').all()
+        for item in r:
+            results.append(item)
+        for item in r2:
+            results.append(item)
 
-    bal_list = []
-    starting_balance = s.query(Accounts).filter(Accounts.id == id).first()
+        bal_list = []
+        starting_balance = s.query(Accounts).filter(Accounts.id == id).first()
 
-    for item in results:
-        if item.type == 'transfers' and item.acct_id2 == id:
-            bal_list.append(item.amount2)
-        elif item.type == 'transfers' and item.acct_id== id:
-            bal_list.append(item.amount)
-        elif item.type == 'transactions':
-            bal_list.append(item.amount)
+        for item in results:
+            if item.type == 'transfers' and item.acct_id2 == id:
+                bal_list.append(item.amount2)
+            elif item.type == 'transfers' and item.acct_id== id:
+                bal_list.append(item.amount)
+            elif item.type == 'transactions':
+                bal_list.append(item.amount)
 
-    curbal = Decimal(starting_balance.startbal) + sum(bal_list)
-    print(curbal)
-
+        curbal = Decimal(starting_balance.startbal) + sum(bal_list)
+        print(curbal)
+    except ProgrammingError as e:
+        curbal=0
+        print(e, 'You probably do not have any transactions.')
     '''
     transaction: below
     '''
@@ -268,19 +309,35 @@ def create_transaction(username):
     s = Session()
     user = s.query(User).filter_by(username=username).first()
 
-    r = s.query(Transactions).filter(Transactions.user_id==user.id).all()
+    # r = s.query(Transactions).filter(Transactions.user_id==user.id).all()
+
+    ''' code to create dynamics account list for form'''
+    account_choice = s.query(Accounts).filter(Accounts.user_id==user.id).all()
+
+    account_list = [(item.id, item.acct_name) for item in account_choice]
+
+    ''' code to create dynamic category list for form'''
+    category_choice = s.query(Categories).filter(Categories.user_id==user.id).all()
+
+    cat_list = [(item.id, item.name) for item in category_choice]
 
     form = TransactionCreationForm()
+    '''form choices passed to form after creation of form'''
+    form.acct_id.choices = account_list
+    form.cat_id.choices = cat_list
     if form.validate_on_submit():
         new_txn = Transactions()
         new_txn.date = form.date.data
         new_txn.amount = form.amount.data
         new_txn.payee_name = form.payee_name.data
+        new_txn.acct_id = form.acct_id.data
+        new_txn.cat_id = form.cat_id.data
         new_txn.user_id = user.id
         s.add(new_txn)
         s.commit()
+        s.close()
         flash('congratulations, you created a new transaction')
-        return redirect(url_for('create_transaction')) #post/redirect/get pattern
+        return redirect(url_for('create_transaction', username=username)) #post/redirect/get pattern
 
     return render_template('create_transaction.html', form=form)
 

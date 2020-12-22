@@ -116,7 +116,7 @@ class User(UserMixin, Base):
 class Accounts(Base):
     __tablename__ = 'accountlist'
 
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
     acct_name = Column(String)
     startbal = Column(Numeric)
     type = Column(String)
@@ -308,8 +308,8 @@ class Accounts(Base):
 class Categories(Base):
     __tablename__ = 'categories'
 
-    id = Column(Integer, primary_key=True)
-    short_name = Column(String)
+    # id = Column(Integer, primary_key=True, autoincrement=True)
+    id = Column(Integer, primary_key=True )
     name = Column(String)
     inorex = Column(String)
     user_id = Column(Integer, ForeignKey('user.id'))

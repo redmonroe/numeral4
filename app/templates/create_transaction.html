@@ -26,9 +26,16 @@
             {% endfor %}
         </p>
         <p>
-            {{ form.status.label }}<br>
-            {{ form.status(size=32) }}<br>
-            {% for error in form.status.errors %}
+            {{ form.acct_id.label }}<br>
+            {{ form.acct_id }}<br>
+            {% for error in form.acct_id.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+        <p>
+            {{ form.cat_id.label }}<br>
+            {{ form.cat_id }}<br>
+            {% for error in form.cat_id.errors %}
             <span style="color: red;">[{{ error }}]</span>
             {% endfor %}
         </p>

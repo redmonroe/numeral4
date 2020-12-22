@@ -8,12 +8,13 @@
     <title>categories</title>
 </head>
 <body>
-    <h1>Accounts</h1>
+    <h1>categories</h1>
       {% for item in items %}
-        <p>Account : {{ item.acct_name }} {{ item.type }}</p>
+        <p>category : {{ item }} </p>
         <hr>
       {% endfor %}
       <a href="{{ url_for('create_category', username=current_user.username) }}">create categories</a>
+      <a href="{{ url_for('delete_category', username=current_user.username) }}">delete categories</a>
     </form>
 </body>
 </html>
