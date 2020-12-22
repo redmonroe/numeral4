@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+{% extends "base.html" %}
+
+{% block content %}
+<html>
+<head>
+    <title>full year expenses</title>
+</head>
+<body>
+    <h1>full year expenses</h1>
+    {% for header in headers %}
+    {% endfor %}
+    {% for figure in figures %}
+    {% endfor %}
+    {{ txfr_in }}
+    {{ txfr_out }}
+    </form>
+</body>
+</html>
+{% endblock %}

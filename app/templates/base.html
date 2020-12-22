@@ -17,6 +17,7 @@
             <a href="{{ url_for('accounts', username=current_user.username) }}">accounts</a>
             <a href="{{ url_for('transactions', username=current_user.username) }}">transactions</a>
             <a href="{{ url_for('unposted', username=current_user.username) }}">show unposted</a>
+            <a href="{{ url_for('reports', username=current_user.username) }}">reports</a>
             {% endif %}
         </div>
         <hr>

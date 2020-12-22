@@ -453,9 +453,9 @@ class Transactions(Base):
     amount = Column(Numeric)
     payee_name = Column(String) # would become own column
     type = Column(String)
-    # cat_id = Column(String, ForeignKey('categories.id'))
-    cat_id = Column(String)
-    cat_id2 = Column(String)
+    cat_id = Column(Integer, ForeignKey('categories.id'))
+    cat_id2 = Column(Integer, ForeignKey('categories.id'))
+    cat_id3 = Column(Integer, ForeignKey('categories.id'))
     acct_id = Column(Integer, ForeignKey('accountlist.id'))
     amount2 = Column(Numeric)
     acct_id2 = Column(Integer, ForeignKey('accountlist.id'))

@@ -1,6 +1,7 @@
 from app import app
 from decimal import Decimal
-from app.models import MyQuery, sessionmaker, Session, engine, User, Categories, Reports, Accounts, Transactions, Base, and_
+from datetime import date
+from app.models import MyQuery, sessionmaker, Session, engine, User, Categories, Reports, Accounts, Transactions, Base, and_, or_, extract
 from flask import render_template, flash, redirect, url_for, request
 from flask_login import current_user, login_user, logout_user, login_required
 from app.forms import LoginForm, RegistrationForm, AccountCreationForm, CategoryCreationForm, TransactionCreationForm, PostEngineForm, EditAccountForm, EditCategoryForm, EditTransactionForm
@@ -578,3 +579,83 @@ def export_csv(username, id):
     print(df.head(5))
 
     return render_template('export.html')
+
+
+@app.route('/reports/<username>/', methods=['GET', 'POST'])
+@login_required
+def reports(username):
+    return render_template('reports_summary.html')
+
+@app.route('/fy_expenses/<username>/', methods=['GET', 'POST'])
+@login_required
+def fy_expenses(username):
+
+    """
+    YEAR
+    get all transactions
+    """
+    s = Session()
+
+    year1 = date.today().year
+    # month = date.today().month
+    # day = date.today().day
+
+    # strt_dt = date(year1, 1, 1)
+    # end_dt = date(year1, month, day)
+
+    # dates = [dt for dt in rrule(MONTHLY, dtstart=strt_dt, until=end_dt)]
+
+    # for item2 in dates:
+
+    user = s.query(User).filter_by(username=username).first()
+
+
+    name_list = []
+    stuff_list = []
+    for item in s.query(Categories).all():
+        for stuff in s.query(Transactions).\
+                        filter(Transactions.user_id == user.id).\
+                        filter(or_(Transactions.cat_id == item.id, Transactions.cat_id2 == item.id)).\
+                        filter(extract('year', Transactions.date) == year1).\
+                        filter(Transactions.type != 'notposted').\
+                        filter(Transactions.type != 'transfers').all():
+            name_list.append(item.name)
+            stuff_list.append(stuff.amount)
+            if stuff.amount2 != None:
+                stuff_list.append(stuff.amount2)
+        
+        txfr_amount_list1 = []
+        txfr_amount_list2 = []
+        for transfers in s.query(Transactions).\
+                            filter(Transactions.user_id == user.id).\
+                            filter(extract('year', Transactions.date) == year1).\
+                            filter(Transactions.type == 'transfers').\
+                            filter(Transactions.type != 'notposted').all():
+            txfr_amount_list1.append(transfers.amount)
+            txfr_amount_list2.append(transfers.amount2)
+
+
+        result = {i:[] for i in name_list}
+        for i,j in zip(name_list, stuff_list):
+            result[i].append(j)
+
+        total = []
+        headers = []
+        figures = []
+        # print(year1, 'year1:')
+        for k,v in result.items():
+            total.append(sum(v))
+            headers.append(k)
+            figures.append(sum(v))
+            # print(f'{k:>25} | {sum(v):<}')
+
+    print('transfers IN:', sum(txfr_amount_list1))
+    print('transfers OUT:', sum(txfr_amount_list2))
+    net_txfr = sum(txfr_amount_list1) + sum(txfr_amount_list2)
+    print('net transfers:', net_txfr)
+    txfr_in = sum(txfr_amount_list1)
+    txfr_out = sum(txfr_amount_list2)
+    # return headers, figures, sum(txfr_amount_list1), sum(txfr_amount_list2)
+
+    return render_template('reports_summary.html', year=year1, header=headers, figures=figures, txfr_in=txfr_in, txfr_out=txfr_out)
+
