@@ -602,15 +602,24 @@ def reports(username):
 
             user = s.query(User).filter_by(username=username).first()
 
-            for transaction in s.query(Transactions).filter(extract(date_style, Transactions.date) == period).all():
+            transactions_list = []
+
+            for transaction in s.query(Transactions).\
+                filter(Transactions.user_id == user.id).\
+                filter(extract(date_style, Transactions.date) == period).all():
                 
                 print(transaction)
                 print(date_style)
+                transactions_list.append(transaction)
 
-        report_query(username, date_style=report_period)
+            return transactions_list
+
+        transactions_list = report_query(username, date_style=report_period)
+
+
         flash('lily-livered sumbitch')
 
-        return redirect(url_for('reports', username=username, form=form, report_period=report_period))
+        return render_template('reports_summary.html', username=username, form=form, transactions=transactions_list, report_period=report_period)
 
     return render_template('reports_summary.html', username=username, form=form)
 

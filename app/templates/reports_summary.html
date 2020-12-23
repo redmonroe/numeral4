@@ -21,7 +21,11 @@
             </p>
         <hr>
     <p>{{ form.submit() }}</p>
-    </form>
+        </form>
+        {% for transaction in transactions %}
+        <p> {{ transaction }} </p>            
+        {% endfor %}
+    
 </body>
 </html>
 {% endblock %}
