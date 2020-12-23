@@ -4,7 +4,7 @@ from datetime import date
 from app.models import MyQuery, sessionmaker, Session, engine, User, Categories, Reports, Accounts, Transactions, Base, and_, or_, extract
 from flask import render_template, flash, redirect, url_for, request
 from flask_login import current_user, login_user, logout_user, login_required
-from app.forms import LoginForm, RegistrationForm, AccountCreationForm, CategoryCreationForm, TransactionCreationForm, PostEngineForm, EditAccountForm, EditCategoryForm, EditTransactionForm
+from app.forms import LoginForm, RegistrationForm, AccountCreationForm, CategoryCreationForm, TransactionCreationForm, PostEngineForm, EditAccountForm, EditCategoryForm, EditTransactionForm, ReportSelectForm
 from werkzeug.urls import url_parse
 import pandas as pd
 from sqlalchemy.exc import ProgrammingError
@@ -584,7 +584,35 @@ def export_csv(username, id):
 @app.route('/reports/<username>/', methods=['GET', 'POST'])
 @login_required
 def reports(username):
-    return render_template('reports_summary.html')
+    form = ReportSelectForm()
+    if form.validate_on_submit():
+        report_period = form.report_period.data
+
+        print(report_period)
+
+        def report_query(username, date_style=None):
+
+            s = Session()
+
+            if date_style == 'year':
+                period = date.today().year
+            elif date_style == 'month':
+                period = date.today().month
+
+
+            user = s.query(User).filter_by(username=username).first()
+
+            for transaction in s.query(Transactions).filter(extract(date_style, Transactions.date) == period).all():
+                
+                print(transaction)
+                print(date_style)
+
+        report_query(username, date_style=report_period)
+        flash('lily-livered sumbitch')
+
+        return redirect(url_for('reports', username=username, form=form, report_period=report_period))
+
+    return render_template('reports_summary.html', username=username, form=form)
 
 @app.route('/fy_expenses/<username>/', methods=['GET', 'POST'])
 @login_required

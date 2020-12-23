@@ -68,3 +68,7 @@ class EditTransactionForm(TransactionCreationForm):
 class PostEngineForm(FlaskForm):
     type = SelectField('post as?', choices=[('regular', 'regular'), ('split', 'split transaction'), ('transfer', 'transfer')])
     submit = SubmitField('press to select')
+
+class ReportSelectForm(FlaskForm):
+    report_period = SelectField('report period', choices=[('year', 'year'), ('month', 'month')])
+    submit = SubmitField('generate report')

@@ -9,8 +9,21 @@
 <body>
     <h1>Reports Summary</h1>
         <p><a href="{{ url_for('fy_expenses', username=current_user.username) }}">full year expenses (starting point for testing</a> </p>
+        <form action="" method="post">
+            <p> {{ report_period }} </p>
+            {{ form.hidden_tag() }}
+            <p>
+                {{ form.report_period.label }}<br>
+                {{ form.report_period }}<br>
+                {% for error in form.report_period.errors %}
+                <span style="color: red;">[{{ error }}]</span>
+                {% endfor %}
+            </p>
         <hr>
+    <p>{{ form.submit() }}</p>
     </form>
 </body>
 </html>
 {% endblock %}
+
+
