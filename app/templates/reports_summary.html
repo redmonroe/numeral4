@@ -19,6 +19,20 @@
                 <span style="color: red;">[{{ error }}]</span>
                 {% endfor %}
             </p>
+            <p>
+                {{ form.report_template.label }}<br>
+                {{ form.report_template }}<br>
+                {% for error in form.report_template.errors %}
+                <span style="color: red;">[{{ error }}]</span>
+                {% endfor %}
+            </p>
+            <p>
+                {{ form.total_by_cat.label }}<br>
+                {{ form.total_by_cat }}<br>
+                {% for error in form.total_by_cat.errors %}
+                <span style="color: red;">[{{ error }}]</span>
+                {% endfor %}
+            </p>
         <hr>
     <p>{{ form.submit() }}</p>
         </form>

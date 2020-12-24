@@ -587,39 +587,14 @@ def reports(username):
     form = ReportSelectForm()
     if form.validate_on_submit():
         report_period = form.report_period.data
+        report_template = form.report_template.data
+        total = form.total_by_cat.data
 
-        print(report_period)
-
-        def report_query(username, date_style=None):
-
-            s = Session()
-
-            if date_style == 'year':
-                period = date.today().year
-            elif date_style == 'month':
-                period = date.today().month
-
-
-            user = s.query(User).filter_by(username=username).first()
-
-            transactions_list = []
-
-            for transaction in s.query(Transactions).\
-                filter(Transactions.user_id == user.id).\
-                filter(extract(date_style, Transactions.date) == period).all():
-                
-                print(transaction)
-                print(date_style)
-                transactions_list.append(transaction)
-
-            return transactions_list
-
-        transactions_list = report_query(username, date_style=report_period)
-
+        output_list_of_tuples = Reports.report_query(username=username, report_template=report_template, report_period=report_period, total=total) 
 
         flash('lily-livered sumbitch')
 
-        return render_template('reports_summary.html', username=username, form=form, transactions=transactions_list, report_period=report_period)
+        return render_template('reports_summary.html', username=username, form=form, transactions=output_list_of_tuples, report_period=report_period)
 
     return render_template('reports_summary.html', username=username, form=form)
 

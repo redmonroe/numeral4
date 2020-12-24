@@ -1706,6 +1706,69 @@ class Reports(object):
         elif filter == 'category':
             pass
         
+
+    @staticmethod
+    def report_query(username, report_period=None, report_template=None, total=None):
+
+        s = Session()
+        
+        # this is ALWAYS part of queyr
+        if report_period == 'year':
+            period = date.today().year
+        elif report_period == 'month':
+            period = date.today().month
+
+        user = s.query(User).filter_by(username=username).first()
+
+        queries = []
+
+        if report_template == 'default':
+            queries.append(Transactions.user_id == user.id)
+            queries.append(extract(report_period, Transactions.date) == period)
+        elif report_template == 'posted':
+            queries.append(Transactions.user_id == user.id)
+            queries.append(Transactions.type != 'notposted')
+            queries.append(Transactions.type != 'transfers')
+            queries.append(extract(report_period, Transactions.date) == period)
+
+            print (report_template, queries)
+        if total: 
+            cat_list = s.query(Categories).filter(Categories.user_id == user.id).all()
+            catid_dict = {i.id:[] for i in cat_list}
+
+        # main iteration
+        output_list_of_tuples = []
+        for transaction in s.query(Transactions).filter(and_(*queries)):
+            
+            name = transaction
+            other = 'add more info here'
+            row = (name, other)
+            output_list_of_tuples.append(row)
+
+
+            if total:
+                for k, v in catid_dict.items():                
+                    if k == transaction.cat_id:
+                        catid_dict[k].append(float(transaction.amount))
+
+        if total: 
+            cat_tuple = ()
+            renamed_list = []
+            output_list_of_tuples = []
+            for key, value in catid_dict.items():
+                category = s.query(Categories).get(key)
+                cat_tuple = (category.name, value)
+                renamed_list.append(cat_tuple)
+
+            for item in renamed_list:
+                name = item[0]
+                total = sum(item[1])
+                cat_tuple = (name, total)
+                output_list_of_tuples.append(cat_tuple)
+
+        # print(output_list_of_tuples)
+
+        return output_list_of_tuples
 class Reconciliation(object):
     """The basic structure of a reconciliation is 
 
@@ -1921,7 +1984,7 @@ if __name__ == "__main__":
     * sum by period
     * refine filter
 
-    * search
+    * report_template
     '''
 
 

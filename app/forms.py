@@ -49,7 +49,7 @@ class EditCategoryForm(CategoryCreationForm):
 
 class TransactionCreationForm(FlaskForm):
     date = DateField('date', validators=[DataRequired()])
-    type = SelectField('type? transaction by default', choices=[('transactions', 'transactions'), ('split', 'split'), ('transfer', 'transfer')])
+    type = SelectField('type? transaction by default', choices=[('transactions', 'transactions'), ('split', 'split'), ('transfer', 'transfer'), ('notposted', 'notposted')])
     amount = DecimalField('amount (- for expense)', validators=[DataRequired()])
     payee_name = StringField('payee name')
     acct_id = SelectField('distribution account?', validators=[DataRequired()])
@@ -71,4 +71,6 @@ class PostEngineForm(FlaskForm):
 
 class ReportSelectForm(FlaskForm):
     report_period = SelectField('report period', choices=[('year', 'year'), ('month', 'month')])
+    report_template = SelectField('report template', choices=[('default', 'get all in period'), ('posted', 'posted only')])
+    total_by_cat = SelectField('total by category', choices=[(True, 'yes'), (False, 'no')])
     submit = SubmitField('generate report')
