@@ -1216,6 +1216,12 @@ class Helper(object):
 class Reports(object):
 
     @staticmethod
+    def add(x, y):
+        z = 0
+        z = x + y
+        return z
+
+    @staticmethod
     def show_posted_transactions():
         """
         This is a start, goddammit.
@@ -1711,7 +1717,7 @@ class Reports(object):
     def report_query(username, report_period=None, report_template=None, total=None):
 
         s = Session()
-        
+
         # this is ALWAYS part of queyr
         if report_period == 'year':
             period = date.today().year
