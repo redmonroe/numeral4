@@ -11,10 +11,15 @@ class CreateUserTest(unittest.TestCase):
     def tearDown(self):
         self.browser.quit()  
 
-    def test_host_exists(self):
-        self.browser.get('http://localhost:5000')
+    # def test_host_exists(self):
+    #     self.browser.get('http://localhost:5000')
 
-        self.assertIn('numeral4', self.browser.title)
+    #     self.assertIn('numeral4', self.browser.title)
+
+    def test_login(self):
+        self.browser.get('http://localhost:5000/login')
+
+        self.assertIn('sign in', self.browser.title)
 
         self.fail('Finish the test!')
 

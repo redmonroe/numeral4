@@ -1,16 +1,21 @@
 
-from app.models import Reports
+# from app.models import Reports
 
-def test_add():
-    assert Reports.add(3, 4) == 7
+# def test_add():
+#     assert Reports.add(3, 4) == 7
 
 
 ### what do I want to test
 # create user
 # delete user
 
+from datetime import datetime, timedelta
+import unittest
+from app import app
+from app.models import create_engine, User, Session
+from config import Config
 
-
+print(Config.DATABASE_URI_PANDAS)
 
 '''
 below is from flask_mega_tutorial
