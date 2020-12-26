@@ -1775,6 +1775,7 @@ class Reports(object):
         # print(output_list_of_tuples)
 
         return output_list_of_tuples
+
 class Reconciliation(object):
     """The basic structure of a reconciliation is 
 
