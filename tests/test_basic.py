@@ -17,6 +17,51 @@ from config import Config
 
 print(Config.DATABASE_URI_PANDAS)
 
+
+import os
+import tempfile
+import pytest
+
+
+def test_app():
+    from app import app
+    assert 'create_global_jinja_loader' in dir(app)
+
+# def test_index_html(app, client): #example of testing html
+#     res = client.get('/')
+#     expected = '<title>numeral4</title>'
+#     assert expected == (res.get_data(as_text=True)) #this somehow reads the page
+
+def test_index_html_template_render(app, client):
+    res = client.get('/')
+
+    assert res.status_code == 200   
+
+    html = res.get_data(as_text=True)
+    tpl = app.jinja_env.get_template('index.html')
+    assert tpl.render() == res.get_data(as_text=True)
+
+    link_expected = '<p><a href="/signup">signup</a></p>'
+    assert link_expected in html
+
+def test_link_to_signup(app, client):
+    pass
+
+def test_signup_template_render(app, client):
+    res = client.get('/signup')
+    assert res.status_code == 200 
+
+    html = res.get_data(as_text=True)
+    tpl = app.jinja_env.get_template('signup.html')
+    assert tpl.render() == res.get_data(as_text=True)
+
+    expected = '<title>signup</title>'
+    assert expected in html
+    #testing a redirect
+
+def test_signup_form(app, client):
+    pass
+
 '''
 below is from flask_mega_tutorial
 
